@@ -120,8 +120,14 @@ func Login(cont *gin.Context) {
 		})
 	}
 
-	// 登陆成功，返回token
-	token := "111"
+	// 登陆成功，生成并返回token
+	token, err := common.ReleaseToken(user)
+	if err != nil {
+		cont.JSON(http.StatusInternalServerError, gin.H{
+			"code":    "500",
+			"message": "系统异常",
+		})
+	}
 	cont.JSON(http.StatusOK, gin.H{
 		"message": "登录成功",
 		"code":    "200",
