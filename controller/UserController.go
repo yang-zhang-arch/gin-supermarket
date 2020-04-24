@@ -53,7 +53,6 @@ func Register(cont *gin.Context) {
 		return
 	}
 
-	// 添加注册
 	// 对密码做加密处理
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
@@ -64,6 +63,7 @@ func Register(cont *gin.Context) {
 		})
 		return
 	}
+	// 添加注册
 	newUser := model.User{
 		Name:     name,
 		Tel:      tel,
@@ -113,10 +113,10 @@ func Login(cont *gin.Context) {
 		return
 	}
 
-	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		cont.JSON(http.StatusBadRequest, gin.H{
 			"code":    "401",
-			"message": "登录成功",
+			"message": "登录失败",
 		})
 	}
 

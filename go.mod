@@ -1,3 +1,5 @@
+// 模块管理：go mod init org/project_name
+
 module WebFull
 
 go 1.14

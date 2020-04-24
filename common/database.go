@@ -29,7 +29,7 @@ func InitDB() *gorm.DB {
 	db, err := gorm.Open(driver, args)
 
 	if err != nil {
-		// 错误处理
+		panic("failed to connect to db, err: " + err.Error())
 	}
 	db.AutoMigrate(&model.User{})
 
