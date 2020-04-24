@@ -1,0 +1,10 @@
+server:
+  port: 8081
+datasource:
+  driver: "mariadb"
+	host: "loclahost"
+	port: "3306"
+	database: "WebFull"
+	user: "root"
+	charset: "utf8"
+	password: "root"
