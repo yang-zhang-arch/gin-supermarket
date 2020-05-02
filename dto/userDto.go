@@ -1,4 +1,4 @@
-package dto
+package dto // Data Transfer Object
 
 import (
 	"WebFull/model"

@@ -4,6 +4,7 @@ import (
 	"WebFull/common"
 	"WebFull/dto"
 	"WebFull/model"
+	"WebFull/response"
 	"WebFull/util"
 	"net/http"
 
@@ -25,18 +26,12 @@ func Register(cont *gin.Context) {
 
 	// 格式验证
 	if len(tel) != 11 {
-		cont.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code":    "422",
-			"message": "手机号长度必须为11位",
-		})
+		response.Fail(cont, nil, "手机号长度必须为11位")
 		return
 	}
 
 	if len(password) < 6 {
-		cont.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code":    "423",
-			"message": "密码不能小于6位",
-		})
+		response.Fail(cont, nil, "密码不能小于6位")
 		return
 	}
 
@@ -46,10 +41,7 @@ func Register(cont *gin.Context) {
 
 	// 后台验证
 	if IsTelExist(db, tel) {
-		cont.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code":    "424",
-			"message": "用户已存在",
-		})
+		response.Fail(cont, nil, "用户已存在")
 		return
 	}
 
@@ -57,10 +49,7 @@ func Register(cont *gin.Context) {
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	if err != nil {
-		cont.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code":    "500",
-			"message": "密码加密错误",
-		})
+		response.Fail(cont, nil, "密码加密错误")
 		return
 	}
 	// 添加注册
@@ -70,10 +59,7 @@ func Register(cont *gin.Context) {
 		Password: hashPassword,
 	}
 	db.Create(&newUser)
-	cont.JSON(http.StatusOK, gin.H{
-		"code":    "200",
-		"message": "注册成功",
-	})
+	response.Success(cont, nil, "注册成功")
 }
 
 func Login(cont *gin.Context) {
@@ -86,18 +72,12 @@ func Login(cont *gin.Context) {
 
 	// 格式验证
 	if len(tel) != 11 {
-		cont.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code":    "422",
-			"message": "手机号长度必须为11位",
-		})
+		response.Fail(cont, nil, "手机号长度必须为11位")
 		return
 	}
 
 	if len(password) < 6 {
-		cont.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code":    "423",
-			"message": "密码不能小于6位",
-		})
+		response.Fail(cont, nil, "密码不能小于6位")
 		return
 	}
 
@@ -106,43 +86,26 @@ func Login(cont *gin.Context) {
 	db.Where("telephone = ?", tel).First(&user)
 
 	if user.ID == 0 {
-		cont.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code":    "422",
-			"message": "手机号长度必须为11位",
-		})
+		response.Fail(cont, nil, "用户不存在")
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		cont.JSON(http.StatusBadRequest, gin.H{
-			"code":    "401",
-			"message": "登录失败",
-		})
+		response.Fail(cont, nil, "登录失败")
+		return
 	}
 
 	// 登陆成功，生成并返回token
 	token, err := common.ReleaseToken(user)
 	if err != nil {
-		cont.JSON(http.StatusInternalServerError, gin.H{
-			"code":    "500",
-			"message": "系统异常",
-		})
+		response.Response(cont, http.StatusInternalServerError, 500, nil, "系统异常")
 	}
-	cont.JSON(http.StatusOK, gin.H{
-		"message": "登录成功",
-		"code":    "200",
-		"data":    gin.H{"token": token},
-	})
-
+	response.Success(cont, &gin.H{"token": token}, "登录成功")
 }
 
 func Info(cont *gin.Context) {
 	user, _ := cont.Get("user")
-	cont.JSON(http.StatusOK, gin.H{
-		"code": "200",
-		"data": gin.H{"user": dto.ToUserDTO(user.(model.User))}, // 类型转换
-	})
-
+	response.Success(cont, &gin.H{"user": dto.ToUserDTO(user.(model.User))}, "")
 }
 
 func IsTelExist(db *gorm.DB, tel string) bool {
